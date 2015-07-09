@@ -13,7 +13,7 @@ package Telegram::Bot::Brain;
   sub init {
       my $self = shift;
       $self->add_repeating_task(600, \&timed_task);
-      $self->add_responder(qr/start/i, \&respond_to_start_command);
+      $self->add_responder(\&criteria, \&response);
   }
 
 Elsewhere....
@@ -49,7 +49,7 @@ use Data::Dumper;
 # base class for building telegram robots with Mojolicious
 has longpoll_time => 60;
 has ua         => sub { Mojo::UserAgent->new->inactivity_timeout(shift->longpoll_time + 15) };
-has token      => sub { croak "why you no override??"; };
+has token      => sub { croak "you need to supply your own token"; };
 
 has tasks      => sub { [] };
 has responders => sub { [] };
@@ -89,16 +89,24 @@ sub add_repeating_task {
 
 =method add_responder
 
-Respond to text message to our bot.
+Respond to messages we receive. It takes two arguments
+
+=for :list
+* a CODEREF to be executed to evaluate if we should respond to this message
+* a CODEREF to be executed if the previous criteria was true
+=end
+
+Each CODEREF is passed two arguments, this C<Telegram::Bot::Brain> object, and 
+the C<Telegram::Bot::Message> object, the message that was sent to us.
 
 =cut
 
 sub add_responder {
   my $self = shift;
-  my $re   = shift;
-  my $code = shift;
+  my $crit = shift;
+  my $resp = shift;
 
-  push @{ $self->{responders} }, { re => $re, code => $code };
+  push @{ $self->responders }, { criteria => $crit, response => $resp };
 }
 
 =method send_message_to_chat_id
@@ -154,8 +162,15 @@ sub process_message {
     my $msg = Telegram::Bot::Message->create_from_hash($item->{message});
     warn Dumper($msg);
 
-    # foreach my $potential_responder (@$responders) {
-    # }
+    foreach my $potential_responder (@{ $self->responders }) {
+      my $criteria = $potential_responder->{criteria};
+      my $response = $potential_responder->{response};
+      if ($criteria->($self, $msg)) {
+        # passed the criteria check, run the response
+        $response->($self, $msg);
+        # last if ($.....   check if we should stop looking at responses
+      }
+    }
 }
 
 sub think {
