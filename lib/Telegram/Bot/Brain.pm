@@ -13,7 +13,7 @@ package Telegram::Bot::Brain;
   sub init {
       my $self = shift;
       $self->add_repeating_task(600, \&timed_task);
-      $self->add_responder(\&criteria, \&response);
+      $self->add_listener(\&criteria, \&response);
   }
 
 Elsewhere....
@@ -52,7 +52,7 @@ has ua         => sub { Mojo::UserAgent->new->inactivity_timeout(shift->longpoll
 has token      => sub { croak "you need to supply your own token"; };
 
 has tasks      => sub { [] };
-has responders => sub { [] };
+has listeners => sub { [] };
 
 has log        => sub { Log::Any->get_logger };
 
@@ -87,7 +87,7 @@ sub add_repeating_task {
   $repeater->();
 }
 
-=method add_responder
+=method add_listener
 
 Respond to messages we receive. It takes two arguments
 
@@ -101,12 +101,12 @@ the C<Telegram::Bot::Message> object, the message that was sent to us.
 
 =cut
 
-sub add_responder {
+sub add_listener {
   my $self = shift;
   my $crit = shift;
   my $resp = shift;
 
-  push @{ $self->responders }, { criteria => $crit, response => $resp };
+  push @{ $self->listeners }, { criteria => $crit, response => $resp };
 }
 
 =method send_message_to_chat_id
@@ -162,9 +162,9 @@ sub process_message {
     my $msg = Telegram::Bot::Message->create_from_hash($item->{message});
     warn Dumper($msg);
 
-    foreach my $potential_responder (@{ $self->responders }) {
-      my $criteria = $potential_responder->{criteria};
-      my $response = $potential_responder->{response};
+    foreach my $potential_listener (@{ $self->listeners }) {
+      my $criteria = $potential_listener->{criteria};
+      my $response = $potential_listener->{response};
       if ($criteria->($self, $msg)) {
         # passed the criteria check, run the response
         $response->($self, $msg);
