@@ -10,6 +10,7 @@ How easy? This easy:
 
     has token => 'YOURTOKENHERE';
 
+    # is this a message we'd like to respond to?
     sub _hello_for_me {
       my ($self, $msg) = @_;
       # look for the word 'hello' with or without a leading slash
@@ -19,6 +20,8 @@ How easy? This easy:
       return 0;
     }
 
+    # send a polite reply, to either a group or a single user,
+    # depending on where we were addressed from
     sub _be_polite {
       my ($self, $msg) = @_;
 
@@ -32,10 +35,12 @@ How easy? This easy:
       }
     }
 
+    # setup our bot
     sub init {
       my $self = shift;
-      $self->add_listener(\&_hello_for_me,
-                          \&_be_polite);
+      $self->add_listener(\&_hello_for_me,  # criteria
+                          \&_be_polite      # response
+                         ); 
  
     }
 
