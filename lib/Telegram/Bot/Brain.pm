@@ -41,6 +41,8 @@ run without blocking.
 =cut
 
 use Mojo::Base -base;
+use Mojo::IOLoop;
+use Mojo::UserAgent;
 use Carp qw/croak/;
 use Log::Any;
 use Telegram::Bot::Message;
