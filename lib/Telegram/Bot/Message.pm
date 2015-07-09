@@ -7,6 +7,14 @@ use Mojo::JSON qw/from_json/;
 
 use Telegram::Bot::Message::User;
 use Telegram::Bot::Message::UserOrGroup;
+use Telegram::Bot::Message::Audio;
+use Telegram::Bot::Message::Document;
+use Telegram::Bot::Message::Video;
+use Telegram::Bot::Message::Sticker;
+use Telegram::Bot::Message::PhotoSize;
+use Telegram::Bot::Message::Sticker;
+use Telegram::Bot::Message::Contact;
+use Telegram::Bot::Message::Location;
 
 use Data::Dumper;
 
@@ -14,13 +22,22 @@ use Data::Dumper;
 has 'message_id';
 has 'from';
 has 'date';
-has 'text';
 has 'chat';
-has 'new_chat_participant';
-has 'left_chat_participant';
 has 'forward_from';
 has 'forward_date';
 has 'reply_to_message';
+
+has 'text';
+has 'audio';
+has 'document';
+has 'photo';
+has 'sticker';
+has 'video';
+has 'contact';
+has 'location';
+
+has 'new_chat_participant';
+has 'left_chat_participant';
 
 
 sub fields {
@@ -33,10 +50,21 @@ sub fields {
      => [qw/from 
             new_chat_participant left_chat_participant
             forward_from/],
+
    'Telegram::Bot::Message::UserOrGroup' 
      => [qw/chat/],
+
+   'Telegram::Bot::Message::Audio'      => [qw/audio/],
+   'Telegram::Bot::Message::Document'   => [qw/document/],
+   'Telegram::Bot::Message::PhotoSize'  => [qw/photo/],
+   'Telegram::Bot::Message::Video'      => [qw/video/],
+   'Telegram::Bot::Message::Sticker'    => [qw/sticker/],
+   'Telegram::Bot::Message::Contact'    => [qw/contact/],
+   'Telegram::Bot::Message::Location'   => [qw/location/],
   };
 }
+
+sub is_array { my $field = shift; return $field eq 'photo'; }
 
 sub create_from_json {
   my $class = shift;
@@ -62,10 +90,20 @@ sub create_from_hash {
     else {
       foreach my $field (@{ $class->fields->{$k} } ) {
         # warn "  field: $field (" . Dumper($hash->{$field}) . ")\n";
-        my $o;
-        $o = $k->create_from_hash($hash->{$field}) 
-          if defined $hash->{$field};
-        $msg->$field($o);
+        if (is_array($field)) {
+          my @items;
+          foreach my $item (@{ $hash->{$field} || [] }) {
+            my $o = $k->create_from_hash($item) 
+              if defined $hash->{$field};
+            push @items, $o;
+          }
+          $msg->$field(\@items);
+        }
+        else {
+          my $o = $k->create_from_hash($hash->{$field}) 
+            if defined $hash->{$field};
+          $msg->$field($o);
+        }
       }
     }
   }

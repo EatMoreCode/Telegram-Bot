@@ -12,6 +12,8 @@ sub fields {
          };
 }
 
+sub is_array { return; }
+
 sub is_group { 1 }
 sub is_user  { 0 }
 

@@ -9,6 +9,8 @@ has 'first_name';
 has 'last_name';
 has 'username';
 
+sub is_array { return; }
+
 sub fields {
   return { scalar => [qw/id first_name last_name username/]
          };

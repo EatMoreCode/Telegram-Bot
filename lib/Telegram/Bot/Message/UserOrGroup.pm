@@ -7,7 +7,7 @@ use Mojo::Base 'Telegram::Bot::Message';
 use Telegram::Bot::Message::User;
 use Telegram::Bot::Message::Group;
 
-
+sub is_array { return; }
 
 sub create_from_hash {
   my $class = shift;
