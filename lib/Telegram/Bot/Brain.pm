@@ -162,7 +162,6 @@ sub process_message {
     my $item = shift;
 
     my $msg = Telegram::Bot::Message->create_from_hash($item->{message});
-    warn Dumper($msg);
 
     foreach my $potential_listener (@{ $self->listeners }) {
       my $criteria = $potential_listener->{criteria};
