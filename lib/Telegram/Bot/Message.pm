@@ -79,7 +79,7 @@ sub create_from_hash {
   my $msg  = $class->new;
   # warn "creating a $class from " . Dumper ($hash) . "\n";
 
-  foreach my $k (keys $class->fields) {
+  foreach my $k (keys %{ $class->fields }) {
     # warn " working on fields of type '$k'\n";
     if ($k eq 'scalar') {
       foreach my $field (@{ $class->fields->{scalar} } ) {
