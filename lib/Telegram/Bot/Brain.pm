@@ -1,6 +1,6 @@
 package Telegram::Bot::Brain;
 
-# ABSTRACT: A base class brain for your Telegram bot
+# ABSTRACT: A base class to make your very own Telegram bot
 
 =head1 SYNOPSIS
 
