@@ -2,10 +2,6 @@ package Telegram::Bot;
 
 # ABSTRACT: A base class to make your very own Telegram bot
 
-=head1 NAME
-
-Telegram::Bot - Perl module to make creating new Telegram bots easy
-
 =head1 SYNOPSIS
 
 Creating a bot is easy:
