@@ -71,15 +71,15 @@ sub add_repeating_task {
 
   my $repeater = sub {
 
-      # Perform operation every $seconds seconds
-      my $last_check = time();
-      Mojo::IOLoop->recurring(0.1 => sub {
-                                  my $loop = shift;
-                                  my $now  = time();
-                                  return unless ($now - $last_check) >= $seconds;
-                                  $last_check = $now;
-                                  $task->($self);
-                              });
+    # Perform operation every $seconds seconds
+    my $last_check = time();
+    Mojo::IOLoop->recurring(0.1 => sub {
+                              my $loop = shift;
+                              my $now  = time();
+                              return unless ($now - $last_check) >= $seconds;
+                              $last_check = $now;
+                              $task->($self);
+                            });
   };
 
   # keep a copy
@@ -111,9 +111,28 @@ sub add_listener {
   push @{ $self->listeners }, { criteria => $crit, response => $resp };
 }
 
+=method send_to_chat_id
+
+Send a pre-constructed message (some subclass of L<Telegram::Bot::Message>) to a chat id.
+
+=cut
+
+sub send_to_chat_id {
+  my $self    = shift;
+  my $chat_id = shift;
+  my $message = shift;
+
+  my $token = $self->token;
+  my $method = $message->send_method;
+  my $msgURL = "https://api.telegram.org/bot${token}/send". $method;
+  warn "lets hit $msgURL with " . $message->fields;
+
+  $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref } });
+}
+
 =method send_message_to_chat_id
 
-Send a text message to a chat_id (group or individual).
+Send a plain text message to a chat_id (group or individual).
 
 =cut
 

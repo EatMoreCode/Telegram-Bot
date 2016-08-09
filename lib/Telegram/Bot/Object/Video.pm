@@ -1,8 +1,8 @@
-package Telegram::Bot::Message::Video;
+package Telegram::Bot::Object::Video;
 
-# ABSTRACT: The base class for Telegram message 'Video' type.
+# ABSTRACT: The base class for Telegram 'Video' object.
 
-use Mojo::Base 'Telegram::Bot::Message';
+use Mojo::Base 'Telegram::Bot::Object::Base';
 
 has 'file_id';
 has 'width';
@@ -12,8 +12,6 @@ has 'thumb';
 has 'mime_type';
 has 'file_size';
 has 'caption';
-
-sub is_array { return; }
 
 sub fields {
   return { scalar => [qw/file_id width height duration mime_type file_size caption/],

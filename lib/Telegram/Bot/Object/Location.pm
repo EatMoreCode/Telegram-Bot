@@ -1,13 +1,11 @@
-package Telegram::Bot::Message::Location;
+package Telegram::Bot::Object::Location;
 
 # ABSTRACT: The base class for Telegram message 'Location' type.
 
-use Mojo::Base 'Telegram::Bot::Message';
+use Mojo::Base 'Telegram::Bot::Object::Base';
 
 has 'longitude';
 has 'latitude';
-
-sub is_array { return; }
 
 sub fields {
   return { scalar => [qw/longitude latitude/],
