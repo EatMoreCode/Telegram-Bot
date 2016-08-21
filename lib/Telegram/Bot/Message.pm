@@ -84,7 +84,6 @@ sub create_from_hash {
     else {
       foreach my $field (@{ $class->fields->{$k} } ) {
         if (is_array($field)) {
-          warn "----AM ARRAY $field ----";
           my @items;
           foreach my $item (@{ $hash->{$field} || [] }) {
             my $o = $k->create_from_hash($item)
@@ -94,7 +93,6 @@ sub create_from_hash {
           $msg->$field(\@items);
         }
         else {
-          warn "NOT ARAY $field";
           my $o = $k->create_from_hash($hash->{$field})
             if defined $hash->{$field};
           $msg->$field($o);

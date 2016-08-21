@@ -125,7 +125,6 @@ sub send_to_chat_id {
   my $token = $self->token;
   my $method = $message->send_method;
   my $msgURL = "https://api.telegram.org/bot${token}/send". $method;
-  warn "lets hit $msgURL with " . $message->fields;
 
   $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref } });
 }
