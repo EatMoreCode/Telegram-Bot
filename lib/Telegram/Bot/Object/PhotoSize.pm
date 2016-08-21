@@ -9,6 +9,8 @@ has 'width';
 has 'height';
 has 'file_size';
 
+sub is_array { 1 }
+
 sub fields {
   return { scalar => [qw/file_id width height file_size/]
          };

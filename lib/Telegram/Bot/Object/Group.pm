@@ -1,8 +1,8 @@
-package Telegram::Bot::Message::Group;
+package Telegram::Bot::Object::Group;
 
 # ABSTRACT: The base class for Telegram message 'Group' type.
 
-use Mojo::Base 'Telegram::Bot::Message';
+use Mojo::Base 'Telegram::Bot::Object::Base';
 
 has 'id';
 has 'title';

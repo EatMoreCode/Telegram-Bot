@@ -10,10 +10,12 @@ has 'width';
 has 'height';
 has 'thumb';
 has 'file_size';
+has 'emoji';
 
 sub fields {
-  return { scalar => [qw/file_id width height file_size/],
-           'Telegram::Bot::Message::PhotoSize' => [qw/thumb/]
+  return { scalar => [qw/file_id width height file_size emoji/],
+           object => [ { thumb => 'Telegram::Bot::Object::PhotoSize' } ],
+           array  => [ ],
          };
 }
 

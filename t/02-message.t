@@ -22,7 +22,7 @@ is ($msg2->from->last_name, undef, 'has the right id');
 my $json3 = '{ "chat": { "id": 456, "first_name": "john" } }';
 my $msg3 = Telegram::Bot::Message->create_from_json($json3);
 
-ok ($msg3->chat->isa('Telegram::Bot::Message::User'), 'isa user');
+is (ref($msg3->chat), 'Telegram::Bot::Object::User', 'isa user');
 ok ($msg3->chat->is_user, 'is user');
 ok (! $msg3->chat->is_group, 'is not group');
 
@@ -30,7 +30,7 @@ ok (! $msg3->chat->is_group, 'is not group');
 my $json4 = '{ "chat": { "id": -9999, "title": "johnno group" } }';
 my $msg4 = Telegram::Bot::Message->create_from_json($json4);
 
-ok ($msg4->chat->isa('Telegram::Bot::Message::Group'), 'isa group');
+is (ref($msg4->chat), 'Telegram::Bot::Object::Group', 'isa group');
 ok ($msg4->chat->is_group, 'is group');
 ok (! $msg4->chat->is_user, 'is not user');
 
