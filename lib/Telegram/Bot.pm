@@ -4,6 +4,8 @@ package Telegram::Bot;
 
 =head1 SYNOPSIS
 
+NOTE: This API should not yet be considered stable.
+
 Creating a bot is easy:
 
     package MyBot;
