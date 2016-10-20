@@ -133,17 +133,23 @@ sub send_to_chat_id {
 
 Send a plain text message to a chat_id (group or individual).
 
+Can be passed an optional hashref which is passed directly to the Telegram Bot API, for extra
+arguments like C<parse_mode> and so on.
+
+   $self->send_message_to_chat_id($msg->chat->id, "<pre>$text</pre>", { parse_mode => 'HTML' });
+
 =cut
 
 sub send_message_to_chat_id {
   my $self    = shift;
   my $chat_id = shift;
   my $message = shift;
+  my $opts    = shift || {};
 
   my $token = $self->token;
   my $msgURL = "https://api.telegram.org/bot${token}/sendMessage";
 
-  $self->ua->post($msgURL, form => { chat_id => $chat_id, text => $message });
+  $self->ua->post($msgURL, form => { %$opts, chat_id => $chat_id, text => $message });
 }
 
 sub add_getUpdates_handler {
