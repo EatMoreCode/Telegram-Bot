@@ -32,6 +32,10 @@ Creating a bot is easy:
       # is this a 1-on-1 ?
       if ($msg->chat->is_user) {
         $self->send_message_to_chat_id($msg->chat->id, "hello there");
+
+        # send them a picture as well
+        my $image = Telegram::Bot::Object::PhotoSize->new(image => "smile.png");
+        $self->send_to_chat_id($msg->chat->id, $image);
       }
       # group chat
       else {

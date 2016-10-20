@@ -98,7 +98,7 @@ Respond to messages we receive. It takes two arguments
 * a CODEREF to be executed if the previous criteria was true
 =end
 
-Each CODEREF is passed two arguments, this C<Telegram::Bot::Brain> object, and 
+Each CODEREF is passed two arguments, this C<Telegram::Bot::Brain> object, and
 the C<Telegram::Bot::Message> object, the message that was sent to us.
 
 =cut
@@ -121,12 +121,13 @@ sub send_to_chat_id {
   my $self    = shift;
   my $chat_id = shift;
   my $message = shift;
+  my $args    = shift || {};
 
   my $token = $self->token;
   my $method = $message->send_method;
   my $msgURL = "https://api.telegram.org/bot${token}/send". $method;
 
-  $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref } });
+  $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref }, %$args});
 }
 
 =method send_message_to_chat_id
