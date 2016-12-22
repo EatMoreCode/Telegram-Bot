@@ -2,11 +2,12 @@ use Test::More;
 
 use_ok ('Telegram::Bot::Message');
 
-my $json1 = '{ "message_id": 123456, "date": 12346 }';
+my $json1 = '{ "message_id": 123456, "date": 12346, "text": "hello world" }';
 my $msg1 = Telegram::Bot::Message->create_from_json($json1);
 
 is ($msg1->date, 12346);
 is ($msg1->message_id, 123456);
+is ($msg1->text, "hello world");
 
 my $json2 = '{ "message_id": 123456, "date": 12346, "from": { "id": 444 } }';
 my $msg2 = Telegram::Bot::Message->create_from_json($json2);

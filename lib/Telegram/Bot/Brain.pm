@@ -54,7 +54,7 @@ has ua         => sub { Mojo::UserAgent->new->inactivity_timeout(shift->longpoll
 has token      => sub { croak "you need to supply your own token"; };
 
 has tasks      => sub { [] };
-has listeners => sub { [] };
+has listeners  => sub { [] };
 
 has log        => sub { Log::Any->get_logger };
 
@@ -95,7 +95,10 @@ Respond to messages we receive. It takes two arguments
 
 =for :list
 * a CODEREF to be executed to evaluate if we should respond to this message
+    or
+  a regular expression to be matched against
 * a CODEREF to be executed if the previous criteria was true
+* an optional hashref of arguments
 =end
 
 Each CODEREF is passed two arguments, this C<Telegram::Bot::Brain> object, and
@@ -107,6 +110,17 @@ sub add_listener {
   my $self = shift;
   my $crit = shift;
   my $resp = shift;
+  my $args = shift || {};
+
+  if (ref $crit eq 'Regexp') {
+    my $regex = qr/$crit/;
+    my $new_crit = sub {
+      my ($self, $msg) = @_;
+      return if ! defined $msg->text;
+      return $msg->text =~ $regex;
+    };
+    $crit = $new_crit;
+  }
 
   push @{ $self->listeners }, { criteria => $crit, response => $resp };
 }
@@ -131,8 +145,8 @@ sub send_to_chat_id {
   if (my $res = $tx->success) { return $tx->res->json->{result}; }
   else {
     my $err = $tx->error;
-    die "$err->{code} response: $err->{message}" if $err->{code};
-    die "Connection error: $err->{message}";
+    die "$err->{code} response: $err->{message}\nBody: " . $tx->res->body if $err->{code};
+    die "Connection error: $err->{message}\nBody: " . $tx->res->body;
   }
 }
 
@@ -160,8 +174,8 @@ sub send_message_to_chat_id {
   if (my $res = $tx->success) { return $tx->res->json->{result}; }
   else {
     my $err = $tx->error;
-    die "$err->{code} response: $err->{message}" if $err->{code};
-    die "Connection error: $err->{message}";
+    die "$err->{code} response: $err->{message}\nBody: " . $tx->res->body if $err->{code};
+    die "Connection error: $err->{message}\nBody: " . $tx->res->body;
   }
 }
 
