@@ -1,3 +1,7 @@
+0.010  Justin Hawkins <justin@eatmorecode.com>
+
+    * improve documentation and metadata
+
 0.009  Justin Hawkins <justin@eatmorecode.com>
 
     * allow the criteria to be specified with a simple regex

@@ -1,5 +1,7 @@
 package Telegram::Bot::Object::Base;
 
+# ABSTRACT: The base class for all Telegram::Bot::Object objects
+
 use Mojo::Base -base;
 
 sub send_method {

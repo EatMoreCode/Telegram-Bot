@@ -41,6 +41,10 @@ run without blocking.
 =cut
 
 use Mojo::Base -base;
+
+use strict;
+use warnings;
+
 use Mojo::IOLoop;
 use Mojo::UserAgent;
 use Carp qw/croak/;
@@ -94,12 +98,15 @@ sub add_repeating_task {
 Respond to messages we receive. It takes two arguments
 
 =for :list
-* a CODEREF to be executed to evaluate if we should respond to this message
-    or
-  a regular expression to be matched against
-* a CODEREF to be executed if the previous criteria was true
+* CODEREF or regular expression
+The coderef should return a true or false value, based on the input message. It is called
+as an object method on your subclass, with the first argument being the message object.
+If you instead supply a regular expression, the message object's text component is checked
+against it.
+* CODEREF to be executed if the previous criteria was true
+As above, it is called as an object method, and the first argument is the message object
+that you are responding to.
 * an optional hashref of arguments
-=end
 
 Each CODEREF is passed two arguments, this C<Telegram::Bot::Brain> object, and
 the C<Telegram::Bot::Message> object, the message that was sent to us.
