@@ -1,5 +1,8 @@
 package Telegram::Bot;
 
+use strict;
+use warnings;
+
 # ABSTRACT: A base class to make your very own Telegram bot
 
 =head1 SYNOPSIS
