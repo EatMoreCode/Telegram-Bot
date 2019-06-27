@@ -2,6 +2,7 @@
 
     * fix kwalitee issues
     * META.json
+    * use a modern Mojolicious version
 
 0.010  Justin Hawkins <justin@eatmorecode.com>
 

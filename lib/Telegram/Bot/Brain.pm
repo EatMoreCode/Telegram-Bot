@@ -148,13 +148,10 @@ sub send_to_chat_id {
   my $method = $message->send_method;
   my $msgURL = "https://api.telegram.org/bot${token}/send". $method;
 
-  my $tx = $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref }, %$args});
-  if (my $res = $tx->success) { return $tx->res->json->{result}; }
-  else {
-    my $err = $tx->error;
-    die "$err->{code} response: $err->{message}\nBody: " . $tx->res->body if $err->{code};
-    die "Connection error: $err->{message}\nBody: " . $tx->res->body;
-  }
+  my $res = $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref }, %$args})->result;
+  if    ($res->is_success) { return $res->json->{result}; }
+  elsif ($res->is_error)   { die "Failed to post: " . $res->message; }
+  else                     { die "Not sure what went wrong"; }
 }
 
 =method send_message_to_chat_id
@@ -177,13 +174,10 @@ sub send_message_to_chat_id {
   my $token = $self->token;
   my $msgURL = "https://api.telegram.org/bot${token}/sendMessage";
 
-  my $tx = $self->ua->post($msgURL, form => { %$args, chat_id => $chat_id, text => $message });
-  if (my $res = $tx->success) { return $tx->res->json->{result}; }
-  else {
-    my $err = $tx->error;
-    die "$err->{code} response: $err->{message}\nBody: " . $tx->res->body if $err->{code};
-    die "Connection error: $err->{message}\nBody: " . $tx->res->body;
-  }
+  my $res = $self->ua->post($msgURL, form => { %$args, chat_id => $chat_id, text => $message })->result;
+  if    ($res->is_success) { return $res->json->{result}; }
+  elsif ($res->is_error)   { die "Failed to post: " . $res->message; }
+  else                     { die "Not sure what went wrong"; }
 }
 
 sub add_getUpdates_handler {
