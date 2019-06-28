@@ -4,7 +4,7 @@ Telegram::Bot - A base class to make your very own Telegram bot
 
 # VERSION
 
-version 0.012
+version 0.013
 
 # SYNOPSIS
 
@@ -77,7 +77,7 @@ Justin Hawkins <justin@eatmorecode.com>
 
 # COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2016 by Justin Hawkins.
+This software is copyright (c) 2019 by Justin Hawkins.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
