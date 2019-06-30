@@ -4,7 +4,7 @@ Telegram::Bot - A base class to make your very own Telegram bot
 
 # VERSION
 
-version 0.020
+version 0.021
 
 # SYNOPSIS
 
@@ -18,16 +18,6 @@ package MyBot;
 use Mojo::Base 'Telegram::Bot::Brain';
 
 has token => 'YOURTOKENHERE';
-
-# is this a message we'd like to respond to?
-sub _hello_for_me {
-  my ($self, $msg) = @_;
-  # look for the word 'hello' with or without a leading slash
-  if ($msg->text =~ m{/?hello}i) {
-    return 1;
-  }
-  return 0;
-}
 
 # send a polite reply, to either a group or a single user,
 # depending on where we were addressed from
