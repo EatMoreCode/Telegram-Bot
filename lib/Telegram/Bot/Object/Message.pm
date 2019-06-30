@@ -145,7 +145,7 @@ sent.
 sub reply {
   my $self = shift;
   my $text = shift;
-  return $self->_brain->sendMessage({chat_id => $self->chat->chat_id, text => $text});
+  return $self->_brain->sendMessage({chat_id => $self->chat->id, text => $text});
 }
 
 1;

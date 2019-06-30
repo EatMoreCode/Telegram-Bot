@@ -38,4 +38,24 @@ sub fields {
         };
 }
 
+=method is_user
+
+Returns true is this is a chat is a single user.
+
+=cut
+
+sub is_user {
+  shift->id > 0;
+}
+
+=method is_group
+
+Returns true if this is a chat is a group.
+
+=cut
+
+sub is_group {
+  shift->id < 0;
+}
+
 1;

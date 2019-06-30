@@ -13,51 +13,49 @@ NOTE: This API should not yet be considered stable.
 Creating a bot is easy:
 
 ```perl
-   package MyBot;
-   
-   use Mojo::Base 'Telegram::Bot::Brain';
+package MyBot;
 
-   has token => 'YOURTOKENHERE';
+use Mojo::Base 'Telegram::Bot::Brain';
 
-   # is this a message we'd like to respond to?
-   sub _hello_for_me {
-     my ($self, $msg) = @_;
-     # look for the word 'hello' with or without a leading slash
-     if ($msg->text =~ m{/?hello}i) {
-       return 1;
-     }
-     return 0;
-   }
+has token => 'YOURTOKENHERE';
 
-   # send a polite reply, to either a group or a single user,
-   # depending on where we were addressed from
-   sub _be_polite {
-     my ($self, $msg) = @_;
+# is this a message we'd like to respond to?
+sub _hello_for_me {
+  my ($self, $msg) = @_;
+  # look for the word 'hello' with or without a leading slash
+  if ($msg->text =~ m{/?hello}i) {
+    return 1;
+  }
+  return 0;
+}
 
-     # is this a 1-on-1 ?
-     if ($msg->chat->is_user) {
-       $self->send_message_to_chat_id($msg->chat->id, "hello there");
+# send a polite reply, to either a group or a single user,
+# depending on where we were addressed from
+sub _be_polite {
+  my ($self, $msg) = @_;
 
-       # send them a picture as well
-       my $image = Telegram::Bot::Object::PhotoSize->new(image => "smile.png");
-       $self->send_to_chat_id($msg->chat->id, $image);
-     }
-     # group chat
-     else {
-       $self->send_message_to_chat_id($msg->chat->id, "hello to everyone!");
-     }
-   }
+  return unless $msg->text =~ /hello/;
 
-   # setup our bot
-   sub init {
-     my $self = shift;
-     $self->add_listener(\&_hello_for_me,  # criteria
-                         \&_be_polite      # response
-                        ); 
+  # is this a 1-on-1 ?
+  if ($msg->chat->is_user) {
+    $msg->reply("hello there");
 
-   }
+    # send them a picture as well
+    $self->sendPhoto({chat_id => $msg->chat->id, photo => $image_filename});
+  }
+  # group chat
+  else {
+    $msg->reply("hello to everyone!");
+  }
+}
 
-   1;
+# setup our bot
+sub init {
+  my $self = shift;
+  $self->add_listener(\&_be_polite);
+}
+
+1;
 ```
 
 Now just:

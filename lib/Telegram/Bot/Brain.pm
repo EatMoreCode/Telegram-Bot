@@ -197,6 +197,7 @@ Returns a L<Telegram::Bot::Object::Message> object.
 sub sendMessage {
   my $self = shift;
   my $args = shift || {};
+
   my $send_args = {};
   croak "no chat_id supplied" unless $args->{chat_id};
   $send_args->{chat_id} = $args->{chat_id};

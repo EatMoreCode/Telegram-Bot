@@ -12,7 +12,7 @@ NOTE: This API should not yet be considered stable.
 Creating a bot is easy:
 
     package MyBot;
-    
+
     use Mojo::Base 'Telegram::Bot::Brain';
 
     has token => 'YOURTOKENHERE';
@@ -32,35 +32,33 @@ Creating a bot is easy:
     sub _be_polite {
       my ($self, $msg) = @_;
 
+      return unless $msg->text =~ /hello/;
+
       # is this a 1-on-1 ?
       if ($msg->chat->is_user) {
-        $self->send_message_to_chat_id($msg->chat->id, "hello there");
+        $msg->reply("hello there");
 
         # send them a picture as well
-        my $image = Telegram::Bot::Object::PhotoSize->new(image => "smile.png");
-        $self->send_to_chat_id($msg->chat->id, $image);
+        $self->sendPhoto({chat_id => $msg->chat->id, photo => $image_filename});
       }
       # group chat
       else {
-        $self->send_message_to_chat_id($msg->chat->id, "hello to everyone!");
+        $msg->reply("hello to everyone!");
       }
     }
 
     # setup our bot
     sub init {
       my $self = shift;
-      $self->add_listener(\&_hello_for_me,  # criteria
-                          \&_be_polite      # response
-                         ); 
- 
+      $self->add_listener(\&_be_polite);
     }
 
     1;
-    
+
 Now just:
 
     perl -MMyBot -E 'MyBot->new->think'
-    
+
 and you've got yourself a stew, baby! Or a bot, anyway.
 
 Note that for the bot to see messages that do not start with a leading '/', you will need to use
