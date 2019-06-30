@@ -2,6 +2,13 @@ package Telegram::Bot::Object::Document;
 
 # ABSTRACT: The base class for Telegram 'Document' objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#document> for details of the
+attributes available for L<Telegram::Bot::Object::Document> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 
 use Telegram::Bot::Object::PhotoSize;

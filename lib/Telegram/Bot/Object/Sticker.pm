@@ -2,6 +2,13 @@ package Telegram::Bot::Object::Sticker;
 
 # ABSTRACT: The base class for Telegram message 'Sticker' type.
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#sticker> for details of the
+attributes available for L<Telegram::Bot::Object::Sticker> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::PhotoSize;
 

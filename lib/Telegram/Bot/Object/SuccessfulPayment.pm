@@ -2,6 +2,13 @@ package Telegram::Bot::Object::SuccessfulPayment;
 
 # ABSTRACT: The base class for Telegram 'SuccessfulPayment' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#successfulpayment> for details of the
+attributes available for L<Telegram::Bot::Object::SuccessfulPayment> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 # use Telegram::Bot::Object::OrderInfo;
 

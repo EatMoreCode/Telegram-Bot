@@ -2,6 +2,13 @@ package Telegram::Bot::Object::Chat;
 
 # ABSTRACT: The base class for Telegram 'Chat' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#chat> for details of the
+attributes available for L<Telegram::Bot::Object::Chat> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::ChatPhoto;
 use Telegram::Bot::Object::Message;

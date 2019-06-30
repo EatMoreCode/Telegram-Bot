@@ -2,6 +2,13 @@ package Telegram::Bot::Object::Video;
 
 # ABSTRACT: The base class for Telegram 'Video' object.
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#video> for details of the
+attributes available for L<Telegram::Bot::Object::Video> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::PhotoSize;
 

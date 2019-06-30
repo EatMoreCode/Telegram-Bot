@@ -2,16 +2,10 @@ package Telegram::Bot::Object::User;
 
 # ABSTRACT: The base class for Telegram message 'User' type.
 
-=head1 SYNOPSIS
-
-    my $user = Telegram::Bot::Object::User->new($hashref);
-
 =head1 DESCRIPTION
 
-See the documenation at L<https://core.telegram.org/bots/api#user>
-
-Typically you would not need to manually create one of these. They will
-be returned from the Telegram Bot API.
+See L<https://core.telegram.org/bots/api#user> for details of the
+attributes available for L<Telegram::Bot::Object::User> objects.
 
 =cut
 

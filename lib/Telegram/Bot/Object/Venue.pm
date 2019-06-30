@@ -2,6 +2,13 @@ package Telegram::Bot::Object::Venue;
 
 # ABSTRACT: The base class for Telegram 'LoginUrl' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#venue> for details of the
+attributes available for L<Telegram::Bot::Object::Venue> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::Location;
 

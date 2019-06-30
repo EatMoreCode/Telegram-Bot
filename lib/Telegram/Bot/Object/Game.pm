@@ -2,6 +2,13 @@ package Telegram::Bot::Object::Game;
 
 # ABSTRACT: The base class for Telegram message 'Game' type.
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#game> for details of the
+attributes available for L<Telegram::Bot::Object::Game> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::PhotoSize;
 use Telegram::Bot::Object::Animation;
@@ -23,6 +30,5 @@ sub fields {
 }
 
 sub arrays { qw/photo text_entities/ }
-
 
 1;

@@ -13,7 +13,7 @@ package Telegram::Bot::Brain;
   sub init {
       my $self = shift;
       $self->add_repeating_task(600, \&timed_task);
-      $self->add_listener(\&criteria, \&response);
+      $self->add_listener(\&respond_to_messages);
   }
 
 Elsewhere....
@@ -31,6 +31,16 @@ Internally it uses the Mojo::IOLoop event loop to provide non-blocking
 access to the Bot API, allowing your bot to listen for events via the
 longpoll getUpdates API method and also trigger timed events that can
 run without blocking.
+
+As with any bot framework, the principle is that the framework allows you
+to interact with other users on Telegram. The Telegram API provides a rich
+set of typed objects. This framework will allow you to create those objects
+to send into the API (for instance, sending text messages, sending photos,
+and more) as well as call your code (via L<add_listener> when your bot
+receives messages (which might be text, or images, and so on).
+
+How bots work with Telegram is out of scope for this document, a good
+starting place is L<https://core.telegram.org/bots>.
 
 =head1 SEE ALSO
 
@@ -65,7 +75,12 @@ has log        => sub { Log::Any->get_logger };
 
 =method add_repeating_task
 
-This method will add a sub to run every C<$seconds> seconds.
+This method will add a sub to run every C<$seconds> seconds. Pass this method
+two parameters, the number of seconds between executions, and the coderef to
+execute.
+
+Your coderef will be passed the L<Telegram::Bot::Brain> object when it is
+executed.
 
 =cut
 
@@ -96,46 +111,65 @@ sub add_repeating_task {
 
 =method add_listener
 
-Respond to messages we receive. It takes two arguments
+Respond to messages we receive. It takes a single argument, a coderef to execute
+for each update that is sent to us. These are *typically* C<Telegram::Bot:Object::Message>
+objects, though that is not the only type of update that may be sent (see
+L<https://core.telegram.org/bots/api#update>).
 
-=for :list
-* CODEREF or regular expression
-The coderef should return a true or false value, based on the input message. It is called
-as an object method on your subclass, with the first argument being the message object.
-If you instead supply a regular expression, the message object's text component is checked
-against it.
-* CODEREF to be executed if the previous criteria was true
-As above, it is called as an object method, and the first argument is the message object
-that you are responding to.
-* an optional hashref of arguments
+Multiple listeners can be added, they will receive the incoming update in the order
+that they are registered.
 
-Each CODEREF is passed two arguments, this C<Telegram::Bot::Brain> object, and
-the C<Telegram::Bot::Message> object, the message that was sent to us.
+Any or all listeners can choose to ignore or take action on any particular update.
 
 =cut
 
 sub add_listener {
-  my $self = shift;
-  my $crit = shift;
-  my $resp = shift;
-  my $args = shift || {};
+  my $self    = shift;
+  my $coderef = shift;
 
-  if (ref $crit eq 'Regexp') {
-    my $regex = qr/$crit/;
-    my $new_crit = sub {
-      my ($self, $msg) = @_;
-      return if ! defined $msg->text;
-      return $msg->text =~ $regex;
-    };
-    $crit = $new_crit;
-  }
-
-  push @{ $self->listeners }, { criteria => $crit, response => $resp };
+  push @{ $self->listeners }, $coderef;
 }
+
+sub init {
+  die "init was not overridden!";
+}
+
+=method think
+
+Start this bot thinking.
+
+Calls your init method and then enters a blocking loop (unless a Mojo::IOLoop
+is already running).
+
+=cut
+
+sub think {
+  my $self = shift;
+  $self->init();
+
+  $self->_add_getUpdates_handler;
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+
+=head1 Telegram Bot API methods
+
+The following methods are relatively thin wrappers around the various
+methods available in the Telgram Bot API to send messages and perform other
+updates.
+
+L<https://core.telegram.org/bots/api#available-methods>
+
+They all return immediately with the corresponding Telegram::Bot::Object
+subclass - consult the documenation for each below to see what to expect.
+
+Note that not all methods have yet been implemented.
+
+=cut
 
 =method getMe
 
-See L<https://core.telegram.org/bots/api#getme>.
+This is the wrapper around the C<getMe> API method. See
+L<https://core.telegram.org/bots/api#getme>.
 
 Takes no arguments, and returns the L<Telegram::Bot::Object::User> that
 represents this bot.
@@ -155,6 +189,8 @@ sub getMe {
 =method sendMessage
 
 See L<https://core.telegram.org/bots/api#sendmessage>.
+
+Returns a L<Telegram::Bot::Object::Message> object.
 
 =cut
 
@@ -192,86 +228,74 @@ sub sendMessage {
   return Telegram::Bot::Object::Message->create_from_hash($api_response);
 }
 
+=method forwardMessage
 
+See L<https://core.telegram.org/bots/api#forwardmessage>.
 
-=method send_to_chat_id
-
-Send a pre-constructed message (some subclass of L<Telegram::Bot::Message>) to a chat id.
+Returns a L<Telegram::Bot::Object::Message> object.
 
 =cut
 
-sub send_to_chat_id {
-  my $self    = shift;
-  my $chat_id = shift;
-  my $message = shift;
-  my $args    = shift || {};
+sub forwardMessage {
+  my $self = shift;
+  my $args = shift || {};
+  my $send_args = {};
+  croak "no chat_id supplied" unless $args->{chat_id};
+  $send_args->{chat_id} = $args->{chat_id};
+
+  croak "no from_chat_id supplied"    unless $args->{from_chat_id};
+  $send_args->{from_chat_id}    = $args->{from_chat_id};
+
+  croak "no message_id supplied"    unless $args->{message_id};
+  $send_args->{message_id}    = $args->{message_id};
+
+  # these are optional, send if they are supplied
+  $send_args->{disable_notification} = $args->{disable_notification} if exists $args->{disable_notification};
 
   my $token = $self->token;
-  my $method = $message->send_method;
-  my $msgURL = "https://api.telegram.org/bot${token}/send". $method;
+  my $url = "https://api.telegram.org/bot${token}/forwardMessage";
+  my $api_response = $self->_post_request($url, $send_args);
 
-  my $res = $self->ua->post($msgURL, form => { chat_id => $chat_id, %{ $message->as_hashref }, %$args})->result;
-  if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->message; }
-  else                     { die "Not sure what went wrong"; }
+  return Telegram::Bot::Object::Message->create_from_hash($api_response);
 }
 
-=method send_message_to_chat_id
+=method sendPhoto
 
-Send a plain text message to a chat_id (group or individual).
+See L<https://core.telegram.org/bots/api#sendphoto>.
 
-Can be passed an optional hashref which is passed directly to the Telegram Bot API, for extra
-arguments like C<parse_mode> and so on.
-
-   $self->send_message_to_chat_id($msg->chat->id, "<pre>$text</pre>", { parse_mode => 'HTML' });
+Returns a L<Telegram::Bot::Object::Message> object.
 
 =cut
 
-sub send_message_to_chat_id {
-  my $self    = shift;
-  my $chat_id = shift;
-  my $message = shift;
-  my $args    = shift || {};
+sub sendPhoto {
+  my $self = shift;
+  my $args = shift || {};
+  my $send_args = {};
 
-  my $token = $self->token;
-  my $msgURL = "https://api.telegram.org/bot${token}/sendMessage";
+  croak "no chat_id supplied" unless $args->{chat_id};
+  $send_args->{chat_id} = $args->{chat_id};
 
-  my $res = $self->ua->post($msgURL, form => { %$args, chat_id => $chat_id, text => $message })->result;
-  if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->message; }
-  else                     { die "Not sure what went wrong"; }
-}
-
-=method edit_message
-
-See Telegram Bot API for editMessageText.
-
-Edits a previously sent message.
-
-=cut
-
-sub edit_message {
-  my $self    = shift;
-  my $message = shift;
-  my $args    = shift || {};
-
-  unless ($args->{inline_message_id} ||
-          ($args->{chat_id} && $args->{message_id})) {
-    croak "you need to set either inline_message_id or chat_id and message_id";
+  # photo can be a string (which might be either a URL for telegram servers
+  # to fetch, or a file_id string) or a file on disk to upload - we need
+  # to handle that last case here as it changes the way we create the HTTP
+  # request
+  croak "no photo supplied" unless $args->{photo};
+  if (-e $args->{photo}) {
+    $send_args->{photo} = { photo => { file => $args->{photo} } };
+  }
+  else {
+    $send_args->{photo} = $args->{photo};
   }
 
-  croak "you must supply the new text" unless $message;
-
   my $token = $self->token;
-  my $msgURL = "https://api.telegram.org/bot${token}/editMessageText";
+  my $url = "https://api.telegram.org/bot${token}/sendPhoto";
+  my $api_response = $self->_post_request($url, $send_args);
 
-  my $res = $self->ua->post($msgURL, form => { %$args, text => $message })->result;
-  if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->message, $res->body; }
-  else                     { die "Not sure what went wrong"; }
+  return Telegram::Bot::Object::Message->create_from_hash($api_response);
 }
 
-sub add_getUpdates_handler {
+
+sub _add_getUpdates_handler {
   my $self = shift;
 
   my $http_active = 0;
@@ -292,7 +316,7 @@ sub add_getUpdates_handler {
       my $items = $res->{result};
       foreach my $item (@$items) {
         $last_update_id = $item->{update_id};
-        $self->process_message($item);
+        $self->_process_message($item);
       }
 
       $http_active = 0;
@@ -301,11 +325,10 @@ sub add_getUpdates_handler {
 }
 
 # process a message which arrived via getUpdates
-sub process_message {
+sub _process_message {
     my $self = shift;
     my $item = shift;
 
-    use Data::Dumper; warn "GOT:" . Dumper($item);
     my $update_id = $item->{update_id};
     # There can be several types of responses. But only one response.
     # https://core.telegram.org/bots/api#update
@@ -321,24 +344,12 @@ sub process_message {
       die "Do not know how to handle this update: " . Dumper($item);
     }
 
-    foreach my $potential_listener (@{ $self->listeners }) {
-      my $criteria = $potential_listener->{criteria};
-      my $response = $potential_listener->{response};
-      if ($criteria->($self, $update)) {
-        # passed the criteria check, run the response
-        $response->($self, $update);
-        # last if ($.....   check if we should stop looking at responses
-      }
+    foreach my $listener (@{ $self->listeners }) {
+      # call the listener code, supplying ourself and the update
+      $listener->($self, $update);
     }
 }
 
-sub think {
-  my $self = shift;
-  $self->init();
-
-  $self->add_getUpdates_handler;
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
-}
 
 sub _post_request {
   my $self = shift;

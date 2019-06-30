@@ -2,6 +2,13 @@ package Telegram::Bot::Object::LoginUrl;
 
 # ABSTRACT: The base class for Telegram 'LoginUrl' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#loginurl> for details of the
+attributes available for L<Telegram::Bot::Object::LoginUrl> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 
 has 'url';

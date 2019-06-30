@@ -2,6 +2,15 @@ package Telegram::Bot::Object::EncryptedPassportElement;
 
 # ABSTRACT: The base class for Telegram 'EncryptedPassportElement' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#encryptedpassportelement> for details of the
+attributes available for L<Telegram::Bot::Object::EncryptedPassportElement> objects.
+
+Note that this type is not yet fully implemented.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 
 # XXX Implement rest of this

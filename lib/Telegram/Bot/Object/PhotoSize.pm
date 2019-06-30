@@ -2,6 +2,13 @@ package Telegram::Bot::Object::PhotoSize;
 
 # ABSTRACT: The base class for Telegram message 'PhotoSize' type.
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#photosize> for details of the
+attributes available for L<Telegram::Bot::Object::PhotoSize> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Carp qw/croak/;
 

@@ -2,6 +2,13 @@ package Telegram::Bot::Object::InlineKeyboardMarkup;
 
 # ABSTRACT: The base class for Telegram 'InlineKeyboardMarkup' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#inlinekeyboardmarkup> for details of the
+attributes available for L<Telegram::Bot::Object::InlineKeyboardMarkup> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::InlineKeyboardButton;
 

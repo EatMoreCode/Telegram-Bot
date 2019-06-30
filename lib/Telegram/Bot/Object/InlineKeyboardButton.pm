@@ -2,10 +2,16 @@ package Telegram::Bot::Object::InlineKeyboardButton;
 
 # ABSTRACT: The base class for Telegram 'InlineKeyboardButton' type objects
 
+=head1 DESCRIPTION
+
+See L<https://core.telegram.org/bots/api#inlinekeyboardbutton> for details of the
+attributes available for L<Telegram::Bot::Object::InlineKeyboardButton> objects.
+
+=cut
+
 use Mojo::Base 'Telegram::Bot::Object::Base';
 use Telegram::Bot::Object::LoginUrl;
 use Telegram::Bot::Object::CallbackGame;
-
 
 has 'text';
 has 'url';

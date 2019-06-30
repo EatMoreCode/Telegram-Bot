@@ -4,7 +4,8 @@ package Telegram::Bot::Object::Message;
 
 =head1 DESCRIPTION
 
-See L<https://core.telegram.org/bots/api#message>.
+See L<https://core.telegram.org/bots/api#message> for details of the
+attributes available for L<Telegram::Bot::Object::Message> objects.
 
 =cut
 
