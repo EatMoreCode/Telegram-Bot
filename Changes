@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.020     2019-06-30 22:27:39+09:30 Australia/Adelaide
+
     - Rework API to better reflect the actual bot API - methods
       now have the same name as the corresponding Telegram ones,
       and make them return the corresponding objects as well.
