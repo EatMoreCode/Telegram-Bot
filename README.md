@@ -4,7 +4,7 @@ Telegram::Bot - A base class to make your very own Telegram bot
 
 # VERSION
 
-version 0.013
+version 0.020
 
 # SYNOPSIS
 

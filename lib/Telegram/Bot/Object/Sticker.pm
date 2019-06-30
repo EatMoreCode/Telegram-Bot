@@ -8,14 +8,16 @@ use Telegram::Bot::Object::PhotoSize;
 has 'file_id';
 has 'width';
 has 'height';
-has 'thumb';
-has 'file_size';
+has 'thumb'; # PhotoSize
 has 'emoji';
+has 'set_name';
+# has 'mask_position'; # XXX TODO
+has 'file_size';
 
 sub fields {
-  return { scalar => [qw/file_id width height file_size emoji/],
-           object => [ { thumb => 'Telegram::Bot::Object::PhotoSize' } ],
-           array  => [ ],
+  return { scalar                             => [qw/file_id width height emoji
+                                                     set_name file_size /],
+           'Telegram::Bot::Object::PhotoSize' => [ qw/thumb/ ],
          };
 }
 

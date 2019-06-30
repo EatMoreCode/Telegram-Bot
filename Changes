@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+    - Rework API to better reflect the actual bot API - methods
+      now have the same name as the corresponding Telegram ones,
+      and make them return the corresponding objects as well.
+      This is a breaking change!
+
 0.012     2019-06-28 16:52:52+09:30 Australia/Adelaide
 
     - add missing dependency

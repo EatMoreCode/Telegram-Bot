@@ -49,8 +49,9 @@ use Mojo::IOLoop;
 use Mojo::UserAgent;
 use Carp qw/croak/;
 use Log::Any;
-use Telegram::Bot::Message;
 use Data::Dumper;
+
+use Telegram::Bot::Object::Message;
 
 # base class for building telegram robots with Mojolicious
 has longpoll_time => 60;
@@ -132,6 +133,67 @@ sub add_listener {
   push @{ $self->listeners }, { criteria => $crit, response => $resp };
 }
 
+=method getMe
+
+See L<https://core.telegram.org/bots/api#getme>.
+
+Takes no arguments, and returns the L<Telegram::Bot::Object::User> that
+represents this bot.
+
+=cut
+
+sub getMe {
+  my $self = shift;
+  my $token = $self->token;
+
+  my $url = "https://api.telegram.org/bot${token}/getMe";
+  my $api_response = $self->_post_request($url);
+
+  return Telegram::Bot::Object::User->create_from_hash($api_response);
+}
+
+=method sendMessage
+
+See L<https://core.telegram.org/bots/api#sendmessage>.
+
+=cut
+
+sub sendMessage {
+  my $self = shift;
+  my $args = shift || {};
+  my $send_args = {};
+  croak "no chat_id supplied" unless $args->{chat_id};
+  $send_args->{chat_id} = $args->{chat_id};
+
+  croak "no text supplied"    unless $args->{text};
+  $send_args->{text}    = $args->{text};
+
+  # these are optional, send if they are supplied
+  $send_args->{parse_mode} = $args->{parse_mode} if exists $args->{parse_mode};
+  $send_args->{disable_web_page_preview} = $args->{disable_web_page_preview} if exists $args->{disable_web_page_preview};
+  $send_args->{disable_notification} = $args->{disable_notification} if exists $args->{disable_notification};
+  $send_args->{reply_to_message_id}  = $args->{reply_to_message_id}  if exists $args->{reply_to_message_id};
+
+  # check reply_markup is the right kind
+  if (exists $args->{reply_markup}) {
+    my $reply_markup = $args->{reply_markup};
+    die "bad reply_markup supplied"
+      if ( ref($reply_markup) ne 'Telegram::Bot::Object::InlineKeyboardMarkup' &&
+           ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardMarkup'  &&
+           ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardRemove'  &&
+           ref($reply_markup) ne 'Telegram::Bot::Object::ForceReply' );
+    $send_args->{reply_markup} = $reply_markup;
+  }
+
+  my $token = $self->token;
+  my $url = "https://api.telegram.org/bot${token}/sendMessage";
+  my $api_response = $self->_post_request($url, $send_args);
+
+  return Telegram::Bot::Object::Message->create_from_hash($api_response);
+}
+
+
+
 =method send_to_chat_id
 
 Send a pre-constructed message (some subclass of L<Telegram::Bot::Message>) to a chat id.
@@ -180,6 +242,35 @@ sub send_message_to_chat_id {
   else                     { die "Not sure what went wrong"; }
 }
 
+=method edit_message
+
+See Telegram Bot API for editMessageText.
+
+Edits a previously sent message.
+
+=cut
+
+sub edit_message {
+  my $self    = shift;
+  my $message = shift;
+  my $args    = shift || {};
+
+  unless ($args->{inline_message_id} ||
+          ($args->{chat_id} && $args->{message_id})) {
+    croak "you need to set either inline_message_id or chat_id and message_id";
+  }
+
+  croak "you must supply the new text" unless $message;
+
+  my $token = $self->token;
+  my $msgURL = "https://api.telegram.org/bot${token}/editMessageText";
+
+  my $res = $self->ua->post($msgURL, form => { %$args, text => $message })->result;
+  if    ($res->is_success) { return $res->json->{result}; }
+  elsif ($res->is_error)   { die "Failed to post: " . $res->message, $res->body; }
+  else                     { die "Not sure what went wrong"; }
+}
+
 sub add_getUpdates_handler {
   my $self = shift;
 
@@ -209,18 +300,33 @@ sub add_getUpdates_handler {
   });
 }
 
+# process a message which arrived via getUpdates
 sub process_message {
     my $self = shift;
     my $item = shift;
 
-    my $msg = Telegram::Bot::Message->create_from_hash($item->{message});
+    use Data::Dumper; warn "GOT:" . Dumper($item);
+    my $update_id = $item->{update_id};
+    # There can be several types of responses. But only one response.
+    # https://core.telegram.org/bots/api#update
+    my $update;
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{message})             if $item->{message};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_message})      if $item->{edited_message};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{channel_post})        if $item->{channel_post};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_channel_post}) if $item->{edited_channel_post};
+
+    # if we got to this point without creating a response, it must be a type we
+    # don't handle yet
+    if (! $update) {
+      die "Do not know how to handle this update: " . Dumper($item);
+    }
 
     foreach my $potential_listener (@{ $self->listeners }) {
       my $criteria = $potential_listener->{criteria};
       my $response = $potential_listener->{response};
-      if ($criteria->($self, $msg)) {
+      if ($criteria->($self, $update)) {
         # passed the criteria check, run the response
-        $response->($self, $msg);
+        $response->($self, $update);
         # last if ($.....   check if we should stop looking at responses
       }
     }
@@ -233,5 +339,17 @@ sub think {
   $self->add_getUpdates_handler;
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 }
+
+sub _post_request {
+  my $self = shift;
+  my $url  = shift;
+  my $form_args = shift || {};
+
+  my $res = $self->ua->post($url, form => $form_args)->result;
+  if    ($res->is_success) { return $res->json->{result}; }
+  elsif ($res->is_error)   { die "Failed to post: " . $res->message; }
+  else                     { die "Not sure what went wrong"; }
+}
+
 
 1;
