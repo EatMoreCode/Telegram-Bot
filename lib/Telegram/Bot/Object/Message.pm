@@ -133,4 +133,19 @@ sub arrays {
   qw/photo entities caption_entities new_chat_members new_chat_photo/
 }
 
+=method
+
+A convenience method to reply to a message with text.
+
+Will return the L<Telegram::Bot::Object::Message> object representing the message
+sent.
+
+=cut
+
+sub reply {
+  my $self = shift;
+  my $text = shift;
+  return $self->_brain->sendMessage({chat_id => $self->chat->chat_id, text => $text});
+}
+
 1;

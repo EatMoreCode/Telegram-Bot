@@ -16,6 +16,8 @@ You can then use the methods referenced below on those objects.
 
 use Mojo::Base -base;
 
+has '_brain'; # a reference to our brain
+
 =method arrays
 
 Should be overridden by subclasses, returning an array listing of which fields
@@ -62,7 +64,8 @@ other types, as needed.
 sub create_from_hash {
   my $class = shift;
   my $hash  = shift;
-  my $obj   = $class->new;
+  my $brain = shift || die "no brain supplied";
+  my $obj   = $class->new(_brain => $brain);
 
   # deal with each type of field
   foreach my $type (keys %{ $class->fields }) {
@@ -102,7 +105,7 @@ sub create_from_hash {
         if ($obj->_field_is_array($field)) {
           my @sub_array;
           foreach my $data ( @{ $hash->{$field} } ) {
-            push @sub_array, $type->create_from_hash($data);
+            push @sub_array, $type->create_from_hash($data, $brain);
           }
           $obj->$field(\@sub_array);
         }
@@ -110,7 +113,7 @@ sub create_from_hash {
           die "not yet implemented for scalars";
         }
         else {
-          $obj->$field($type->create_from_hash($hash->{$field}));
+          $obj->$field($type->create_from_hash($hash->{$field}, $brain));
         }
 
       }

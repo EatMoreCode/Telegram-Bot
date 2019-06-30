@@ -183,7 +183,7 @@ sub getMe {
   my $url = "https://api.telegram.org/bot${token}/getMe";
   my $api_response = $self->_post_request($url);
 
-  return Telegram::Bot::Object::User->create_from_hash($api_response);
+  return Telegram::Bot::Object::User->create_from_hash($api_response, $self);
 }
 
 =method sendMessage
@@ -225,7 +225,7 @@ sub sendMessage {
   my $url = "https://api.telegram.org/bot${token}/sendMessage";
   my $api_response = $self->_post_request($url, $send_args);
 
-  return Telegram::Bot::Object::Message->create_from_hash($api_response);
+  return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
 }
 
 =method forwardMessage
@@ -256,7 +256,7 @@ sub forwardMessage {
   my $url = "https://api.telegram.org/bot${token}/forwardMessage";
   my $api_response = $self->_post_request($url, $send_args);
 
-  return Telegram::Bot::Object::Message->create_from_hash($api_response);
+  return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
 }
 
 =method sendPhoto
@@ -291,7 +291,7 @@ sub sendPhoto {
   my $url = "https://api.telegram.org/bot${token}/sendPhoto";
   my $api_response = $self->_post_request($url, $send_args);
 
-  return Telegram::Bot::Object::Message->create_from_hash($api_response);
+  return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
 }
 
 
@@ -333,10 +333,10 @@ sub _process_message {
     # There can be several types of responses. But only one response.
     # https://core.telegram.org/bots/api#update
     my $update;
-    $update = Telegram::Bot::Object::Message->create_from_hash($item->{message})             if $item->{message};
-    $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_message})      if $item->{edited_message};
-    $update = Telegram::Bot::Object::Message->create_from_hash($item->{channel_post})        if $item->{channel_post};
-    $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_channel_post}) if $item->{edited_channel_post};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{message}, $self)             if $item->{message};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_message}, $self)      if $item->{edited_message};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{channel_post}, $self)        if $item->{channel_post};
+    $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_channel_post}, $self) if $item->{edited_channel_post};
 
     # if we got to this point without creating a response, it must be a type we
     # don't handle yet
