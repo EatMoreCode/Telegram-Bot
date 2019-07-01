@@ -178,7 +178,7 @@ represents this bot.
 
 sub getMe {
   my $self = shift;
-  my $token = $self->token;
+  my $token = $self->token || croak "no token?";
 
   my $url = "https://api.telegram.org/bot${token}/getMe";
   my $api_response = $self->_post_request($url);
@@ -222,7 +222,7 @@ sub sendMessage {
     $send_args->{reply_markup} = $reply_markup;
   }
 
-  my $token = $self->token;
+  my $token = $self->token || croak "no token?";
   my $url = "https://api.telegram.org/bot${token}/sendMessage";
   my $api_response = $self->_post_request($url, $send_args);
 
@@ -253,7 +253,7 @@ sub forwardMessage {
   # these are optional, send if they are supplied
   $send_args->{disable_notification} = $args->{disable_notification} if exists $args->{disable_notification};
 
-  my $token = $self->token;
+  my $token = $self->token || croak "no token?";
   my $url = "https://api.telegram.org/bot${token}/forwardMessage";
   my $api_response = $self->_post_request($url, $send_args);
 
@@ -288,7 +288,7 @@ sub sendPhoto {
     $send_args->{photo} = $args->{photo};
   }
 
-  my $token = $self->token;
+  my $token = $self->token || croak "no token?";
   my $url = "https://api.telegram.org/bot${token}/sendPhoto";
   my $api_response = $self->_post_request($url, $send_args);
 
