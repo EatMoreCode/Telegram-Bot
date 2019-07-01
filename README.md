@@ -59,6 +59,11 @@ and you've got yourself a stew, baby! Or a bot, anyway.
 Note that for the bot to see messages that do not start with a leading '/', you will need to use
 the `'/setprivacy'` command on Telegram's `@botfather` interface to change the privacy settings.
 
+# EXAMPLES
+
+This distribution's `ex/` directory contains some complete examples that may be
+instructive to look at.
+
 # AUTHOR
 
 Justin Hawkins <justin@eatmorecode.com>
