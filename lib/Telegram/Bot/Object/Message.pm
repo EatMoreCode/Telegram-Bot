@@ -33,6 +33,7 @@ use Telegram::Bot::Object::Venue;
 use Telegram::Bot::Object::SuccessfulPayment;
 use Telegram::Bot::Object::PassportData;
 use Telegram::Bot::Object::InlineKeyboardMarkup;
+use Telegram::Bot::Object::ReplyKeyboardMarkup;
 
 use Data::Dumper;
 
@@ -87,7 +88,7 @@ has 'invoice'; # Invoice
 has 'successful_payment'; # SuccessfulPayment
 has 'connected_website';
 has 'passport_data'; # PassportData
-has 'reply_markup'; # Array of InlineKeyboardMarkup
+has 'reply_markup'; # Array of InlineKeyboardMarkup/ReplyKeyboardMarkup
 
 sub fields {
   return {
@@ -125,6 +126,7 @@ sub fields {
           'Telegram::Bot::Object::SuccessfulPayment'    => [qw/successful_payment/],
           'Telegram::Bot::Object::PassportData'         => [qw/passport_data/],
           'Telegram::Bot::Object::InlineKeyboardMarkup' => [qw/reply_markup/],
+          'Telegram::Bot::Object::ReplyKeyboardMarkup'  => [qw/reply_markup/],
 
   };
 }

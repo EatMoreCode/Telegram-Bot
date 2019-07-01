@@ -57,6 +57,7 @@ use warnings;
 
 use Mojo::IOLoop;
 use Mojo::UserAgent;
+use Mojo::JSON qw/encode_json/;
 use Carp qw/croak/;
 use Log::Any;
 use Data::Dumper;
@@ -219,7 +220,7 @@ sub sendMessage {
            ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardMarkup'  &&
            ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardRemove'  &&
            ref($reply_markup) ne 'Telegram::Bot::Object::ForceReply' );
-    $send_args->{reply_markup} = $reply_markup;
+    $send_args->{reply_markup} = encode_json($reply_markup->as_hashref);
   }
 
   my $token = $self->token || croak "no token?";
@@ -359,7 +360,7 @@ sub _post_request {
 
   my $res = $self->ua->post($url, form => $form_args)->result;
   if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->message; }
+  elsif ($res->is_error)   { die "Failed to post: " . $res->json->{description}; }
   else                     { die "Not sure what went wrong"; }
 }
 
