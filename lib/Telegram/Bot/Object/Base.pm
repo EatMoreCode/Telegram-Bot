@@ -46,6 +46,9 @@ sub array_of_arrays { qw// } #override if needed
 sub _field_is_array_of_arrays {
   my $self = shift;
   my $field = shift;
+
+  return unless (defined $field);
+
   if (grep /^$field$/, $self->array_of_arrays) {
     return 1;
   }
@@ -74,6 +77,8 @@ sub create_from_hash {
     foreach my $field (@fields_of_this_type) {
 
       # ignore fields for which we have no value in the hash
+      next if (! defined $field);
+      next if (ref $hash ne 'HASH');
       next if (! defined $hash->{$field} );
 
       if ($type eq 'scalar') {
