@@ -58,7 +58,10 @@ use warnings;
 use Mojo::IOLoop;
 use Mojo::UserAgent;
 use Mojo::JSON qw/encode_json/;
-use Carp qw/croak/;
+use Carp qw/croak, cluck, confess/; # use croak where error is critical
+                                    # use cluck where we want to say that something bad but non-critical happen in
+                                    #     lower layer (Mojo loop)
+                                    # use confess to die with trace
 use Log::Any;
 use Data::Dumper;
 
@@ -179,12 +182,17 @@ represents this bot.
 
 sub getMe {
   my $self = shift;
-  my $token = $self->token || croak "no token?";
+  my $token = $self->token || do { cluck "no token?"; return {"error" => 1}; };
 
   my $url = "https://api.telegram.org/bot${token}/getMe";
   my $api_response = $self->_post_request($url);
 
-  return Telegram::Bot::Object::User->create_from_hash($api_response, $self);
+  if ($api_response) {
+    return Telegram::Bot::Object::User->create_from_hash($api_response, $self);
+  }
+  else {
+    return {"error" => 1};
+  }
 }
 
 =method sendMessage
@@ -198,13 +206,21 @@ Returns a L<Telegram::Bot::Object::Message> object.
 sub sendMessage {
   my $self = shift;
   my $args = shift || {};
-
   my $send_args = {};
-  croak "no chat_id supplied" unless $args->{chat_id};
+
+  unless ($args->{chat_id}) {
+    cluck "no chat_id supplied";
+    return {"error" => 1};
+  }
+
   $send_args->{chat_id} = $args->{chat_id};
 
-  croak "no text supplied"    unless $args->{text};
-  $send_args->{text}    = $args->{text};
+  unless ($args->{text}) {
+    cluck "no text supplied";
+    return {"error" => 1};
+  }
+
+  $send_args->{text} = $args->{text};
 
   # these are optional, send if they are supplied
   $send_args->{parse_mode} = $args->{parse_mode} if exists $args->{parse_mode};
@@ -215,19 +231,26 @@ sub sendMessage {
   # check reply_markup is the right kind
   if (exists $args->{reply_markup}) {
     my $reply_markup = $args->{reply_markup};
-    die "bad reply_markup supplied"
-      if ( ref($reply_markup) ne 'Telegram::Bot::Object::InlineKeyboardMarkup' &&
-           ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardMarkup'  &&
-           ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardRemove'  &&
-           ref($reply_markup) ne 'Telegram::Bot::Object::ForceReply' );
+    if ( ref($reply_markup) ne 'Telegram::Bot::Object::InlineKeyboardMarkup' &&
+         ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardMarkup'  &&
+         ref($reply_markup) ne 'Telegram::Bot::Object::ReplyKeyboardRemove'  &&
+         ref($reply_markup) ne 'Telegram::Bot::Object::ForceReply' ) {
+      cluck "bad reply_markup supplied";
+      return {"error" => 1};
+    }
     $send_args->{reply_markup} = encode_json($reply_markup->as_hashref);
   }
 
-  my $token = $self->token || croak "no token?";
+  my $token = $self->token || do { cluck "no token?"; return {"error" => 1}; };
   my $url = "https://api.telegram.org/bot${token}/sendMessage";
   my $api_response = $self->_post_request($url, $send_args);
 
-  return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
+  if ($api_response) {
+    return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
+  }
+  else {
+    return {"error" => 1};
+  }
 }
 
 =method forwardMessage
@@ -242,23 +265,42 @@ sub forwardMessage {
   my $self = shift;
   my $args = shift || {};
   my $send_args = {};
-  croak "no chat_id supplied" unless $args->{chat_id};
+
+  unless ($args->{chat_id}) {
+    cluck "no chat_id supplied" ;
+    return {"error" => 1};
+  }
+
   $send_args->{chat_id} = $args->{chat_id};
 
-  croak "no from_chat_id supplied"    unless $args->{from_chat_id};
-  $send_args->{from_chat_id}    = $args->{from_chat_id};
+  unless ($args->{from_chat_id}) {
+    cluck "no from_chat_id supplied";
+    return {"error" => 1};
+  }
 
-  croak "no message_id supplied"    unless $args->{message_id};
-  $send_args->{message_id}    = $args->{message_id};
+  $send_args->{from_chat_id} = $args->{from_chat_id};
+
+  unless ($args->{message_id}) {
+    cluck "no message_id supplied";
+    return {"error" => 1};
+  }
+
+  $send_args->{message_id} = $args->{message_id};
 
   # these are optional, send if they are supplied
   $send_args->{disable_notification} = $args->{disable_notification} if exists $args->{disable_notification};
 
-  my $token = $self->token || croak "no token?";
+  my $token = $self->token || do { cluck "no token?"; return {"error" => 1}; };
+
   my $url = "https://api.telegram.org/bot${token}/forwardMessage";
   my $api_response = $self->_post_request($url, $send_args);
 
-  return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
+  if ($api_response) {
+    return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
+  }
+  else {
+    return {"error" => 1};
+  }
 }
 
 =method sendPhoto
@@ -274,14 +316,22 @@ sub sendPhoto {
   my $args = shift || {};
   my $send_args = {};
 
-  croak "no chat_id supplied" unless $args->{chat_id};
+  unless ($args->{chat_id}) {
+    cluck "no chat_id supplied";
+    return {"error" => 1};
+  }
+
   $send_args->{chat_id} = $args->{chat_id};
 
   # photo can be a string (which might be either a URL for telegram servers
   # to fetch, or a file_id string) or a file on disk to upload - we need
   # to handle that last case here as it changes the way we create the HTTP
   # request
-  croak "no photo supplied" unless $args->{photo};
+  unless ($args->{photo}) {
+    cluck "no photo supplied";
+    return {"error" => 1};
+  }
+
   if (-e $args->{photo}) {
     $send_args->{photo} = { photo => { file => $args->{photo} } };
   }
@@ -289,11 +339,17 @@ sub sendPhoto {
     $send_args->{photo} = $args->{photo};
   }
 
-  my $token = $self->token || croak "no token?";
+  my $token = $self->token || do { cluck "no token?"; return {"error" => 1}; };
+
   my $url = "https://api.telegram.org/bot${token}/sendPhoto";
   my $api_response = $self->_post_request($url, $send_args);
 
-  return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
+  if ($api_response) {
+    return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
+  }
+  else {
+    return {"error" => 1};
+  }
 }
 
 
@@ -343,7 +399,7 @@ sub _process_message {
     # if we got to this point without creating a response, it must be a type we
     # don't handle yet
     if (! $update) {
-      die "Do not know how to handle this update: " . Dumper($item);
+      cluck "Do not know how to handle this update: " . Dumper($item);
     }
 
     foreach my $listener (@{ $self->listeners }) {
@@ -359,9 +415,19 @@ sub _post_request {
   my $form_args = shift || {};
 
   my $res = $self->ua->post($url, form => $form_args)->result;
-  if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->json->{description}; }
-  else                     { die "Not sure what went wrong"; }
+
+  if ($res->is_success) {
+    return $res->json->{result};
+  }
+  elsif ($res->is_error) {
+    # This can be non-fatal error: api change.
+    cluck "Failed to post: " . $res->message;
+    return 0; # to handle this as false in upper layers
+  }
+  else {
+    # This must be something fatal for sure, because either is_success or is_error must be set by Mojo
+    confess "Not sure what went wrong";
+  }
 }
 
 
