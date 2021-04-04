@@ -58,7 +58,7 @@ use warnings;
 use Mojo::IOLoop;
 use Mojo::UserAgent;
 use Mojo::JSON qw/encode_json/;
-use Carp qw/croak/;
+use Carp qw/carp croak/;
 use Log::Any;
 use Data::Dumper;
 
@@ -314,11 +314,15 @@ sub _add_getUpdates_handler {
 
     $self->ua->get($updateURL => sub {
       my ($ua, $tx) = @_;
-      my $res = $tx->res->json;
-      my $items = $res->{result};
-      foreach my $item (@$items) {
-        $last_update_id = $item->{update_id};
-        $self->_process_message($item);
+      my $res = eval { $tx->res->json; };
+      if ((defined $res) && $res ne '') {
+        my $items = $res->{result};
+        foreach my $item (@{$items}) {
+          $last_update_id = $item->{update_id};
+          $self->_process_message($item);
+        }
+      } else {
+        carp "Missing update: $@";
       }
 
       $http_active = 0;
