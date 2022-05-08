@@ -109,7 +109,9 @@ sub create_from_hash {
           $obj->$field(\@sub_array);
         }
         elsif ($obj->_field_is_array_of_arrays($field)) {
-          die "not yet implemented for objects";
+          # Need to skip over this for CallbackQueries (or implement!)
+          $obj->$field([]);
+          warn "not yet implemented for objects";
         }
         else {
           $obj->$field($type->create_from_hash($hash->{$field}, $brain));

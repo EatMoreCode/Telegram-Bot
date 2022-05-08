@@ -63,6 +63,7 @@ use Log::Any;
 use Data::Dumper;
 
 use Telegram::Bot::Object::Message;
+use Telegram::Bot::Object::CallbackQuery;
 
 # base class for building telegram robots with Mojolicious
 has longpoll_time => 60;
@@ -296,6 +297,25 @@ sub sendPhoto {
   return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
 }
 
+sub answerCallbackQuery {
+  my $self = shift;
+  my $args = shift || {};
+
+  my $answer_args = {};
+  croak "no callback_query_id supplied" unless $args->{callback_query_id};
+  $answer_args->{callback_query_id} = $args->{callback_query_id};
+
+  # optional args
+  $answer_args->{text} = $args->{text} if exists $args->{text};
+  $answer_args->{show_alert} = $args->{show_alert} if exists $args->{show_alert};
+  $answer_args->{url} = $args->{url} if exists $args->{url};
+  $answer_args->{cache_time} = $args->{cache_time} if exists $args->{cache_time};
+  my $token = $self->token || croak "no token?";
+  my $url = "https://api.telegram.org/bot${token}/answerCallbackQuery";
+  my $api_response = $self->_post_request($url, $answer_args);
+
+  return 1;
+}
 
 sub _add_getUpdates_handler {
   my $self = shift;
@@ -339,6 +359,7 @@ sub _process_message {
     $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_message}, $self)      if $item->{edited_message};
     $update = Telegram::Bot::Object::Message->create_from_hash($item->{channel_post}, $self)        if $item->{channel_post};
     $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_channel_post}, $self) if $item->{edited_channel_post};
+    $update = Telegram::Bot::Object::CallbackQuery->create_from_hash($item->{callback_query}, $self) if $item->{callback_query};
 
     # if we got to this point without creating a response, it must be a type we
     # don't handle yet
