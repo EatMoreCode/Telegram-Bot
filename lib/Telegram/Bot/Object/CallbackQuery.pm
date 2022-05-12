@@ -51,4 +51,9 @@ sub answer {
   return $self->_brain->answerCallbackQuery({callback_query_id => $self->id, text => $text, cache_time => 3600});
 }
 
+sub chat {
+  my $self = shift;
+  return $self->message->chat;
+}
+
 1;
