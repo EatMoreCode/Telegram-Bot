@@ -64,6 +64,7 @@ use Data::Dumper;
 
 use Telegram::Bot::Object::Message;
 use Telegram::Bot::Object::CallbackQuery;
+use Telegram::Bot::Object::ChatMember;
 
 # base class for building telegram robots with Mojolicious
 has longpoll_time => 60;
@@ -317,6 +318,24 @@ sub answerCallbackQuery {
   return 1;
 }
 
+sub getChatMember {
+  my $self = shift;
+  my $chat_id = shift;
+  my $user_id = shift;
+
+  my $gcm_args = {};
+  croak "no chat_id supplied to getChatMember" unless $chat_id;
+  croak "no user_id supplied to getChatMember" unless $user_id;
+  $gcm_args->{user_id} = $user_id;
+  $gcm_args->{chat_id} = $chat_id;
+
+  my $token = $self->token || croak "no token?";
+  my $url = "https://api.telegram.org/bot${token}/getChatMember";
+  my $api_response = $self->_post_request($url, $gcm_args);
+
+  return Telegram::Bot::Object::ChatMember->create_from_hash($api_response, $self);
+}
+
 sub _add_getUpdates_handler {
   my $self = shift;
 
@@ -382,7 +401,7 @@ sub _post_request {
 
   my $res = $self->ua->post($url, form => $form_args)->result;
   if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->json->{description}; }
+  elsif ($res->is_error)   { warn "Failed to post: " . $res->json->{description}; }
   else                     { die "Not sure what went wrong"; }
 }
 

@@ -67,6 +67,7 @@ sub create_from_hash {
   my $brain = shift || die "no brain supplied";
   my $obj   = $class->new(_brain => $brain);
 
+  return if ref($hash) ne 'HASH';
   # deal with each type of field
   foreach my $type (keys %{ $class->fields }) {
     my @fields_of_this_type = @{ $class->fields->{$type} };
