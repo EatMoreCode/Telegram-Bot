@@ -58,7 +58,7 @@ use warnings;
 use Mojo::IOLoop;
 use Mojo::UserAgent;
 use Mojo::JSON qw/encode_json/;
-use Carp qw/croak/;
+use Carp qw/croak carp/;
 use Log::Any;
 use Data::Dumper;
 
@@ -343,7 +343,8 @@ sub _process_message {
     # if we got to this point without creating a response, it must be a type we
     # don't handle yet
     if (! $update) {
-      croak "Do not know how to handle this update: " . Dumper($item);
+      carp "Do not know how to handle this update: " . Dumper($item);
+      return;
     }
 
     foreach my $listener (@{ $self->listeners }) {
