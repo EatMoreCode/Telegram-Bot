@@ -67,6 +67,7 @@ sub create_from_hash {
   my $brain = shift || die "no brain supplied";
   my $obj   = $class->new(_brain => $brain);
 
+  return if ref($hash) ne 'HASH';
   # deal with each type of field
   foreach my $type (keys %{ $class->fields }) {
     my @fields_of_this_type = @{ $class->fields->{$type} };
@@ -109,7 +110,9 @@ sub create_from_hash {
           $obj->$field(\@sub_array);
         }
         elsif ($obj->_field_is_array_of_arrays($field)) {
-          die "not yet implemented for objects";
+          # Need to skip over this for CallbackQueries (or implement!)
+          $obj->$field([]);
+          warn "not yet implemented for objects";
         }
         else {
           $obj->$field($type->create_from_hash($hash->{$field}, $brain));

@@ -63,6 +63,8 @@ use Log::Any;
 use Data::Dumper;
 
 use Telegram::Bot::Object::Message;
+use Telegram::Bot::Object::CallbackQuery;
+use Telegram::Bot::Object::ChatMember;
 
 # base class for building telegram robots with Mojolicious
 has longpoll_time => 60;
@@ -296,6 +298,43 @@ sub sendPhoto {
   return Telegram::Bot::Object::Message->create_from_hash($api_response, $self);
 }
 
+sub answerCallbackQuery {
+  my $self = shift;
+  my $args = shift || {};
+
+  my $answer_args = {};
+  croak "no callback_query_id supplied" unless $args->{callback_query_id};
+  $answer_args->{callback_query_id} = $args->{callback_query_id};
+
+  # optional args
+  $answer_args->{text} = $args->{text} if exists $args->{text};
+  $answer_args->{show_alert} = $args->{show_alert} if exists $args->{show_alert};
+  $answer_args->{url} = $args->{url} if exists $args->{url};
+  $answer_args->{cache_time} = $args->{cache_time} if exists $args->{cache_time};
+  my $token = $self->token || croak "no token?";
+  my $url = "https://api.telegram.org/bot${token}/answerCallbackQuery";
+  my $api_response = $self->_post_request($url, $answer_args);
+
+  return 1;
+}
+
+sub getChatMember {
+  my $self = shift;
+  my $chat_id = shift;
+  my $user_id = shift;
+
+  my $gcm_args = {};
+  croak "no chat_id supplied to getChatMember" unless $chat_id;
+  croak "no user_id supplied to getChatMember" unless $user_id;
+  $gcm_args->{user_id} = $user_id;
+  $gcm_args->{chat_id} = $chat_id;
+
+  my $token = $self->token || croak "no token?";
+  my $url = "https://api.telegram.org/bot${token}/getChatMember";
+  my $api_response = $self->_post_request($url, $gcm_args);
+
+  return Telegram::Bot::Object::ChatMember->create_from_hash($api_response, $self);
+}
 
 sub _add_getUpdates_handler {
   my $self = shift;
@@ -339,11 +378,13 @@ sub _process_message {
     $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_message}, $self)      if $item->{edited_message};
     $update = Telegram::Bot::Object::Message->create_from_hash($item->{channel_post}, $self)        if $item->{channel_post};
     $update = Telegram::Bot::Object::Message->create_from_hash($item->{edited_channel_post}, $self) if $item->{edited_channel_post};
+    $update = Telegram::Bot::Object::CallbackQuery->create_from_hash($item->{callback_query}, $self) if $item->{callback_query};
 
     # if we got to this point without creating a response, it must be a type we
     # don't handle yet
     if (! $update) {
-      die "Do not know how to handle this update: " . Dumper($item);
+      warn "Do not know how to handle this update: " . Dumper($item);
+      return;
     }
 
     foreach my $listener (@{ $self->listeners }) {
@@ -360,7 +401,7 @@ sub _post_request {
 
   my $res = $self->ua->post($url, form => $form_args)->result;
   if    ($res->is_success) { return $res->json->{result}; }
-  elsif ($res->is_error)   { die "Failed to post: " . $res->json->{description}; }
+  elsif ($res->is_error)   { warn "Failed to post: " . $res->json->{description}; }
   else                     { die "Not sure what went wrong"; }
 }
 
