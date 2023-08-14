@@ -343,7 +343,8 @@ sub _process_message {
     # if we got to this point without creating a response, it must be a type we
     # don't handle yet
     if (! $update) {
-      die "Do not know how to handle this update: " . Dumper($item);
+      warn "Telegram::Bot::Brain does not know how to handle this update: " . Dumper($item);
+      return;
     }
 
     foreach my $listener (@{ $self->listeners }) {
