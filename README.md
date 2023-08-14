@@ -68,7 +68,6 @@ instructive to look at.
 
 - Justin Hawkins <justin@eatmorecode.com>
 - James Green <jkg@earth.li>
-- Julien Fiegehenn <simbabque@cpan.org>
 
 # COPYRIGHT AND LICENSE
 
