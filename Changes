@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.023     2023-08-14 13:18:20+03:00 Europe/Helsinki
+
+	- warn rather than crashing, on an unknown update type
+	- add test for this behaviour change
+	- change dist.ini to reflect that it's me releasing
+
 0.021     2019-07-01 10:34:13+09:30 Australia/Adelaide
 
     - Documentation fixes
